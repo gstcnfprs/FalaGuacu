@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>FalaGuaçu — Sua voz. Nossa cidade.</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+  :root{--navy:#0B2E54;--navy2:#08407D;--blue:#2D7DD2;--gold:#F2A900;--gold2:#F6B92B;--gold-dark:#C98A00;--ink:#13233B;--muted:#5C6B82;--line:#E4E9F0;--bg:#FFFFFF;--soft:#F5F8FC;--ok:#3FA34D;--teal:#1E9E8A;--amber:#E8740C;--danger:#D14545;--gray:#6B7280;--radius:14px;--radius-sm:9px;--shadow:0 6px 24px rgba(11,46,84,.08);--shadow-lg:0 14px 48px rgba(11,46,84,.16);--fs:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;}
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--fs);color:var(--ink);background:var(--bg);line-height:1.5}
+  a{color:var(--navy2);text-decoration:none} button{font-family:inherit;cursor:pointer} img{max-width:100%}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px} .hidden{display:none!important}
+  header.top{position:sticky;top:0;z-index:900;background:#fff;border-bottom:1px solid var(--line)}
+  .topbar{display:flex;align-items:center;gap:14px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;cursor:pointer}.brand .logo{width:40px;height:40px}
+  .brand b{font-size:22px}.brand b .a{color:var(--navy)}.brand b .b{color:var(--gold)}
+  nav.menu{margin-left:auto;display:flex;align-items:center;gap:6px}
+  nav.menu a{padding:9px 14px;border-radius:999px;font-weight:600;font-size:14.5px;color:var(--ink)}
+  nav.menu a:hover{background:var(--soft)} nav.menu a.active{background:var(--navy);color:#fff}
+  nav.menu a.ghost{color:var(--muted)}
+  .burger{display:none;margin-left:auto;background:none;border:1px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:20px;color:var(--navy)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:12px 22px;font-weight:700;font-size:15px;transition:.15s;line-height:1}
+  .btn-gold{background:var(--gold);color:var(--navy)}.btn-navy{background:var(--navy);color:#fff}
+  .btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+  .btn-danger{background:var(--danger);color:#fff}.btn-sm{padding:8px 14px;font-size:13.5px}
+  .btn[disabled]{opacity:.55;cursor:not-allowed}.btn-block{width:100%}
+  .btn-cta{font-size:16px;font-weight:800;letter-spacing:.2px;padding:15px 30px;color:#fff;background:linear-gradient(135deg,#2bb89e 0%,var(--ok) 55%,#2f8f3f 130%);border:2.5px solid var(--navy);box-shadow:0 8px 20px rgba(31,158,138,.30), inset 0 1px 0 rgba(255,255,255,.28);position:relative;overflow:hidden;isolation:isolate;transition:transform .18s ease, box-shadow .18s ease, background .18s ease}
+  .btn-cta .ico{display:inline-flex;transition:transform .18s ease}
+  .btn-cta:hover{transform:translateY(-2px);background:linear-gradient(135deg,#33c7ab 0%,#48b057 60%,#2bb89e 130%);box-shadow:0 14px 30px rgba(31,158,138,.42), inset 0 1px 0 rgba(255,255,255,.35)}
+  .btn-cta:hover .ico{transform:translateX(3px)}
+  .btn-cta:active{transform:translateY(0)}
+  .btn-cta::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.55) 50%,transparent 100%);transform:translateX(-130%);transition:transform .7s ease}
+  .btn-cta:hover::before{transform:translateX(130%)}
+  .hero{background:linear-gradient(180deg,#fff,var(--soft));padding:46px 0 30px}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center}
+  .eyebrow{display:inline-flex;gap:8px;background:var(--gold);color:var(--navy);font-weight:800;font-size:12.5px;padding:6px 13px;border-radius:999px}
+  .hero h1{font-size:clamp(30px,4.6vw,52px);line-height:1.04;margin:16px 0 14px;color:var(--navy)}
+  .hero h1 .hl{color:var(--gold-dark)} .hero p.lead{font-size:17px;color:var(--muted);max-width:520px;margin:0 0 22px}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero-card{background:linear-gradient(160deg,#0d3a6e,var(--navy));border-radius:22px;padding:28px 30px;color:#fff;box-shadow:var(--shadow-lg)}
+  .pl-head{display:flex;align-items:center;gap:9px;margin-bottom:22px}
+  .pl-stats{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .pl-stat .n{font-size:38px;font-weight:800;line-height:1}.pl-stat.a .n{color:var(--gold2)}.pl-stat.b .n{color:#8fe0d0}
+  .pl-stat .t{font-size:12px;color:#cfe0f3;margin-top:7px}
+  .pl-foot{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:12.5px;color:#aecbe9}
+  .section{padding:40px 0}.section h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-dark);font-weight:800;margin:0 0 4px}
+  .section .h-big{font-size:26px;color:var(--navy);margin:0 0 26px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .step .ic{width:44px;height:44px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;color:var(--navy2);margin-bottom:12px}
+  .step b{display:block;color:var(--navy);font-size:15.5px;margin-bottom:4px}.step span{font-size:13.5px;color:var(--muted)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card .pad{padding:24px}.card-h{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .card-h h3{margin:0;font-size:19px;color:var(--navy)}.card-h .sub{font-size:13.5px;color:var(--muted);margin-top:2px}
+  .page-title{font-size:28px;color:var(--navy);margin:30px 0 4px}.page-sub{color:var(--muted);margin:0 0 24px;font-size:15px}
+  label.fld{display:block;margin:0 0 16px}
+  label.fld>span.lab{display:block;font-weight:700;font-size:13.5px;color:var(--navy);margin-bottom:6px}
+  label.fld>span.lab .req{color:var(--danger)}label.fld>span.hint{font-weight:400;color:var(--muted);font-size:12.5px}
+  .inp,select,textarea{width:100%;border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px 13px;font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
+  .inp:focus,select:focus,textarea:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(45,125,210,.12)}
+  textarea{resize:vertical;min-height:110px}.row{display:grid;gap:14px}.row.c2{grid-template-columns:1fr 1fr}.row.c3{grid-template-columns:1fr 1fr 1fr}
+  .phone{display:grid;grid-template-columns:120px 1fr;gap:10px}
+  .seg{display:flex;flex-wrap:wrap;gap:8px}
+  .seg button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font-weight:600;font-size:14px;color:var(--ink)}
+  .seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .cep-feedback{font-size:13px;margin-top:6px}.cep-feedback.ok{color:var(--ok)}.cep-feedback.err{color:var(--danger)}.cep-feedback.load{color:var(--muted)}
+  #mapaRegistrar,#mapaPainel,#mapaPublico{height:340px;border-radius:var(--radius-sm);border:1px solid var(--line);z-index:1}
+  .map-tools{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(11,46,84,.85);color:#fff;border:none;font-size:13px}
+  .uploader{border:1.5px dashed var(--line);border-radius:var(--radius-sm);padding:18px;text-align:center;color:var(--muted);font-size:14px;cursor:pointer}
+  .uploader:hover{border-color:var(--navy2);color:var(--navy)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px}
+  .b-gerada{background:#FFF3D6;color:#9A6B00}.b-recebida{background:#E2EEFB;color:#1A5DA8}.b-respondida{background:#D8F3EE;color:#127563}
+  .b-a_completar{background:#FCE6D2;color:#B5560A}.b-finalizada{background:#DCF1DE;color:#2C7A36}.b-suspensa{background:#E5E7EB;color:#374151}
+  .sla{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px}
+  .sla-no_prazo{background:#DCF1DE;color:#2C7A36}.sla-vence_breve{background:#FFF3D6;color:#9A6B00}.sla-em_atraso{background:#FBE0E0;color:#B42424}
+  .sla-aguardando_cidadao{background:#E2EEFB;color:#1A5DA8}.sla-suspensa{background:#E5E7EB;color:#374151}.sla-concluida{background:#DCF1DE;color:#2C7A36}.sla-sem_prazo{background:#F1F4F8;color:#5C6B82}
+  .proto-box{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:18px;padding:30px;text-align:center}
+  .proto-box .tok{display:inline-flex;gap:10px;background:rgba(255,255,255,.12);border:1px dashed rgba(255,255,255,.4);border-radius:12px;padding:12px 18px;font-size:20px;font-weight:700;letter-spacing:2px;margin:6px 0 4px}
+  .proto-box small{color:#cfe0f3}.copy{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:13px}
+  .timeline{position:relative;padding-left:26px}.timeline:before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .tl-item{position:relative;margin-bottom:18px}.tl-item .dot{position:absolute;left:-26px;top:2px;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .tl-item .who{font-size:12.5px;color:var(--muted);margin-bottom:3px}
+  .tl-item .msg{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px}
+  .tl-item.atend .msg{background:#EAF4FF;border-color:#cfe3fb}.tl-item.contrib .msg{background:#FFF8E8;border-color:#f0e2bf}
+  .tl-anexos{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.tl-anexos img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer}
+  .tl-mod{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+  .stat-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .stat-card .n{font-size:30px;font-weight:800;color:var(--navy);line-height:1}.stat-card .l{font-size:13px;color:var(--muted);margin-top:6px}
+  .stat-card.accent{background:var(--navy);color:#fff}.stat-card.accent .n{color:var(--gold2)}.stat-card.accent .l{color:#cfe0f3}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .list-item{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;margin-bottom:10px;cursor:pointer}
+  .list-item:hover{border-color:var(--navy2);box-shadow:var(--shadow)}
+  .list-item .pr{font-weight:800;color:var(--navy);font-size:13px;text-align:center}
+  .list-item .ti{font-weight:600;color:var(--ink)}.list-item .me{font-size:12.5px;color:var(--muted)}
+  .apoios-tag{display:inline-flex;align-items:center;gap:4px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;color:var(--navy)}
+  .overlay{position:fixed;inset:0;background:rgba(11,46,84,.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:24px;overflow:auto}
+  .overlay.show{display:flex}.drawer{background:#fff;border-radius:18px;max-width:720px;width:100%;box-shadow:var(--shadow-lg);margin:auto}
+  .drawer .dh{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .drawer .dh h3{margin:0;color:var(--navy);font-size:19px}.drawer .db{padding:24px;max-height:74vh;overflow:auto}
+  .x{background:none;border:none;font-size:24px;color:var(--muted)}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:14px;margin-bottom:6px}.kv .k{color:var(--muted)}
+  .contato-box{background:#FFF8E8;border:1px solid #f0e2bf;border-radius:12px;padding:14px;margin:6px 0 14px}
+  .contato-box .ct{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--gold-dark);margin-bottom:6px}
+  .log-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;font-size:13.5px}
+  .log-item .ic{width:34px;height:34px;border-radius:9px;background:var(--soft);display:flex;align-items:center;justify-content:center}
+  .log-item .ac{font-weight:700;color:var(--navy)}.log-item .me{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:13px 22px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.25s;z-index:2000}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast.err{background:var(--danger)}
+  footer.ft{background:var(--navy);color:#cfe0f3;margin-top:50px;padding:34px 0}
+  footer.ft .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  footer.ft b{color:#fff}footer.ft .g{color:var(--gold2)}
+  .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}.center-load{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);padding:40px}
+  .login-wrap{max-width:400px;margin:60px auto;padding:0 18px}
+  .pin{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff}
+  .pin span{transform:rotate(45deg);font-size:15px}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-card{order:-1}.steps{grid-template-columns:1fr 1fr}.stat-grid{grid-template-columns:1fr 1fr}
+    nav.menu{display:none;position:absolute;top:64px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:10px 16px;gap:4px}
+    nav.menu.open{display:flex}nav.menu a{padding:12px}.burger{display:block}.row.c2,.row.c3{grid-template-columns:1fr}.list-item{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap topbar">
+  <div class="brand" onclick="ir('home')">
+    <svg class="logo" viewBox="0 0 64 64" fill="none"><path d="M8 26c0-2 1.6-3.6 3.6-3.6H22L41 12c1.7-1 3.9.2 3.9 2.2v35.6c0 2-2.2 3.2-3.9 2.2L22 41.6H11.6C9.6 41.6 8 40 8 38V26Z" fill="#0B2E54"/><path d="M50 20c4 3 4 21 0 24M55 15c7 6 7 28 0 34" stroke="#F2A900" stroke-width="4" stroke-linecap="round"/></svg>
+    <b><span class="a">Fala</span><span class="b">Guaçu</span></b>
+  </div>
+  <button class="burger" onclick="document.querySelector('nav.menu').classList.toggle('open')">☰</button>
+  <nav class="menu" id="menu">
+    <a data-view="home" onclick="ir('home')">Início</a>
+    <a data-view="registrar" onclick="ir('registrar')">Registrar</a>
+    <a data-view="mapa" onclick="ir('mapa')">Mapa da cidade</a>
+    <a data-view="acompanhar" onclick="ir('acompanhar')">Acompanhar</a>
+    <a class="ghost" id="navEquipe" data-view="equipe" onclick="ir('equipe')">Equipe</a>
+  </nav>
+</div></header>
+<main id="app"></main>
+<div class="overlay" id="overlay" onclick="if(event.target===this)fecharDrawer()"><div class="drawer" id="drawer"></div></div>
+<div class="overlay" id="imgViewer" onclick="this.classList.remove('show')" style="align-items:center"><img id="imgViewerImg" style="max-width:92%;max-height:92vh;border-radius:12px"></div>
+<footer class="ft"><div class="wrap">
+  <div><div style="font-size:20px;font-weight:800"><span style="color:#fff">Fala</span><span class="g">Guaçu</span></div>
+  <div style="font-size:13px;margin-top:4px">Sua voz. <span class="g">Nossa cidade.</span> Um futuro melhor para todos.</div></div>
+  <div style="font-size:12.5px;text-align:right;max-width:560px"><div style="font-weight:700;color:var(--gold2);margin-bottom:6px">Uma iniciativa de</div><div style="margin:2px 0"><b style="color:#fff">Vinicius Marchese</b><span style="color:#9fc0e6"> &mdash; Eng. Telecom.</span></div></div>
+</div></footer>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const SUPABASE_URL="https://gvlctopxjdbiiwvtjwmt.supabase.co", SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2bGN0b3B4amRiaWl3dnRqd210Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Nzc1NjMsImV4cCI6MjA5NTM1MzU2M30.5FCUPIBLpZQdpUxCu4PqAciJH9IldleKM1C_sbF2lOY";
+const MOGI=[-22.3719,-46.942], MOGI_IBGE="3530706", PAGE="unico";
+const _sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
+const S={view:'home',sessao:null,papel:null,formImgs:[],compImgs:[],contribImgs:[],mapaReg:null,markerReg:null,mapaPainel:null,mapaPublico:null,clusterPub:null};
+const $=(s,el=document)=>el.querySelector(s);
+const $$=(s,el=document)=>[...el.querySelectorAll(s)];
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"'`]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
+const mimeImg=m=>(/^image\/(png|jpe?g|webp|gif|bmp)$/i.test(m||'')?m:'image/jpeg');
+const app=()=>document.getElementById('app');
+function toast(m,err=false){const t=$('#toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);}
+function fmtData(d){if(!d)return '—';return new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+const STATUS_LABEL={gerada:'Na fila',recebida:'Em tratamento',respondida:'Respondida',a_completar:'A completar',suspensa:'Suspensa',finalizada:'Finalizada'};
+const STATUS_DOT={gerada:'#F2A900',recebida:'#2D7DD2',respondida:'#1E9E8A',a_completar:'#E8740C',suspensa:'#6B7280',finalizada:'#3FA34D'};
+const badge=st=>`<span class="badge b-${st}">${STATUS_LABEL[st]||st}</span>`;
+const TIPOS=[['reclamacao','Reclamação'],['sugestao','Sugestão'],['comentario','Comentário'],['elogio','Elogio'],['outro','Outro']];
+const TIPO_LABEL=Object.fromEntries(TIPOS);
+const TIPO_ICON={reclamacao:'⚠️',sugestao:'💡',comentario:'💬',elogio:'⭐',outro:'📌'};
+const TIPO_COR={reclamacao:'#D14545',sugestao:'#1E9E8A',comentario:'#2D7DD2',elogio:'#F2A900',outro:'#6B7280'};
+const CATEGORIAS=['Buracos / Pavimentação','Saúde','Limpeza pública','Segurança','Iluminação pública','Trânsito','Transporte coletivo','Água e saneamento','Educação','Enchentes / drenagem','Animais abandonados','Meio ambiente','Outro'];
+const SLA_LABEL={no_prazo:'No prazo',vence_breve:'Vence em breve',em_atraso:'Em atraso',aguardando_cidadao:'Aguardando cidadão',suspensa:'Suspensa',concluida:'Concluída',sem_prazo:'Sem prazo'};
+function slaBadge(sla){if(!sla)return '';const s=sla.situacao||'sem_prazo';let txt=SLA_LABEL[s]||s;
+  if((s==='no_prazo'||s==='vence_breve'||s==='em_atraso')&&sla.segundos_restantes!=null)txt+=' · '+fmtRestante(sla.segundos_restantes);
+  return `<span class="sla sla-${s}">${txt}</span>`;}
+function fmtRestante(seg){const atraso=seg<0;let s=Math.abs(seg);const d=Math.floor(s/86400);const h=Math.floor((s%86400)/3600);
+  let t=d>0?`${d}d`:`${h}h`;return atraso?`atrasado ${t}`:`faltam ${t}`;}
+const reEmail=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function ir(view){S.view=view;document.querySelector('nav.menu').classList.remove('open');
+  $$('nav.menu a').forEach(a=>a.classList.toggle('active',a.dataset.view===view));window.scrollTo(0,0);render();}
+function render(){const v=S.view;
+  if(v==='home')renderHome();else if(v==='registrar')renderRegistrar();else if(v==='mapa')renderMapa();
+  else if(v==='acompanhar')renderAcompanhar();else if(v==='equipe')renderEquipe();}
+
+async function renderHome(){app().innerHTML=`
+  <section class="hero"><div class="wrap"><div class="hero-grid">
+    <div><span class="eyebrow">FalaGuaçu.com.br</span>
+      <h1>Chegou a hora de <span class="hl">você falar</span> sobre como melhorar nossa cidade</h1>
+      <p class="lead">A gente quer ouvir você sobre as melhorias que importam para Mogi Guaçu. Registre sua reclamação, sugestão, elogio ou comentário e acompanhe a resposta com prazo definido.</p>
+      <div class="cta"><button class="btn btn-gold btn-cta" onclick="ir('registrar')">Registrar manifestação <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <button class="btn btn-ghost" onclick="ir('mapa')">Ver mapa da cidade</button></div></div>
+    <div class="hero-card"><div class="pl-head"><div><h3>Painel da cidade</h3><div style="font-size:11.5px;color:#9fc0e6;text-transform:uppercase;letter-spacing:1px">Transparência em tempo real</div></div></div>
+      <div class="pl-stats"><div class="pl-stat a"><div class="n" id="hsTotal">—</div><div class="t">manifestações registradas</div></div>
+        <div class="pl-stat b"><div class="n" id="hsResolv">—</div><div class="t">já respondidas pela equipe</div></div></div>
+      <div class="pl-foot">Sua participação ajuda a priorizar o que a cidade precisa!</div></div>
+  </div></div></section>
+  <section class="section"><div class="wrap"><h2>Como funciona</h2><div class="h-big">Em 4 passos simples</div>
+    <div class="steps">
+      <div class="step"><div class="ic">①</div><b>Escolha o tipo</b><span>Reclamação, sugestão, comentário, elogio ou outro.</span></div>
+      <div class="step"><div class="ic">②</div><b>Descreva e anexe fotos</b><span>Conte o que precisa melhorar e ilustre se quiser.</span></div>
+      <div class="step"><div class="ic">③</div><b>Informe o local</b><span>Pelo CEP ou clicando no mapa — um define o outro.</span></div>
+      <div class="step"><div class="ic">④</div><b>Acompanhe com prazo</b><span>Protocolo, prazo de resposta e avisos por e-mail.</span></div>
+    </div></div></section>`;
+  try{const {data}=await _sb.rpc('fg_contador_publico');
+    if(data?.sucesso){$('#hsTotal').textContent=(data.total??0).toLocaleString('pt-BR');$('#hsResolv').textContent=(data.resolvidas??0).toLocaleString('pt-BR');}
+  }catch(e){}
+}
+
+/* ===== REGISTRAR ===== */
+let _cepInfo=null;
+function renderRegistrar(){S.formImgs=[];_cepInfo=null;
+  app().innerHTML=`<div class="wrap"><h1 class="page-title">Registrar manifestação</h1>
+  <p class="page-sub">Conte o que pode melhorar em Mogi Guaçu. Nome, e-mail, celular e CEP são obrigatórios.</p>
+  <div id="formArea"><div class="card"><div class="pad">
+    <label class="fld"><span class="lab">Tipo de manifestação <span class="req">*</span></span>
+      <div class="seg" id="segTipo">${TIPOS.map((t,i)=>`<button type="button" data-v="${t[0]}" class="${i===0?'on':''}">${TIPO_ICON[t[0]]} ${t[1]}</button>`).join('')}</div></label>
+    <div class="row c2">
+      <label class="fld"><span class="lab">Tema <span class="hint">(opcional)</span></span>
+        <select id="fCategoria"><option value="">Selecione…</option>${CATEGORIAS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+      <label class="fld"><span class="lab">Título <span class="hint">(opcional)</span></span>
+        <input class="inp" id="fTitulo" maxlength="120" placeholder="Ex.: Buraco na Rua das Flores"></label></div>
+    <label class="fld"><span class="lab">Descrição <span class="req">*</span></span>
+      <textarea id="fDescricao" maxlength="3000" placeholder="Descreva sua manifestação…"></textarea></label>
+    <div class="row c2">
+      <label class="fld"><span class="lab">Seu nome <span class="req">*</span></span><input class="inp" id="fNome" maxlength="80" placeholder="Nome completo"></label>
+      <label class="fld"><span class="lab">E-mail <span class="req">*</span> <span class="hint">— para os avisos de andamento</span></span><input class="inp" id="fEmail" type="email" placeholder="voce@email.com"></label></div>
+    <label class="fld"><span class="lab">Celular <span class="req">*</span></span>
+      <div class="phone"><select id="fDDI"><option value="55" selected>🇧🇷 +55</option><option value="1">🇺🇸 +1</option><option value="351">🇵🇹 +351</option><option value="54">🇦🇷 +54</option><option value="595">🇵🇾 +595</option></select>
+      <input class="inp" id="fTelefone" inputmode="tel" placeholder="(19) 99999-9999" oninput="maskTel(this)"></div></label>
+    <label class="fld"><span class="lab">CEP de Mogi Guaçu <span class="req">*</span> <span class="hint">— ou clique no mapa que preenchemos o CEP</span></span>
+      <input class="inp" id="fCep" inputmode="numeric" maxlength="9" placeholder="13840-000" oninput="onCep(this)">
+      <div class="cep-feedback" id="cepFb"></div></label>
+    <div class="row c2" id="boxEndereco" style="display:none">
+      <label class="fld"><span class="lab">Rua / Logradouro</span><input class="inp" id="fLogradouro" readonly></label>
+      <label class="fld"><span class="lab">Bairro</span><input class="inp" id="fBairro" readonly></label></div>
+    <label class="fld"><span class="lab">Onde fica? <span class="hint">— clique no mapa para marcar (define o CEP) ou ajuste o ponto</span></span></label>
+    <div id="mapaRegistrar"></div>
+    <div class="map-tools">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="usarMinhaLocalizacao()">🛰️ Minha localização</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="limparMarcador()">Limpar ponto</button>
+      <span id="pontoInfo" style="font-size:13px;color:var(--muted);align-self:center"></span></div>
+    <label class="fld" style="margin-top:18px"><span class="lab">Fotos <span class="hint">(opcional, até 3)</span></span></label>
+    <label class="uploader" for="fFotos">📷 Toque para tirar uma foto ou escolher da galeria</label>
+    <input id="fFotos" type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addFotos(event)">
+    <div class="thumbs" id="thumbs"></div>
+    <div style="margin-top:24px"><button class="btn btn-gold btn-block" id="btnEnviar" onclick="enviarReclamacao()">Enviar manifestação</button></div>
+  </div></div></div></div>`;
+  setTimeout(initMapaRegistrar,60);
+  $('#segTipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#segTipo button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
+}
+function maskTel(el){let d=el.value.replace(/\D/g,'').slice(0,11);
+  if(d.length>10)el.value=`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  else if(d.length>6)el.value=`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  else if(d.length>2)el.value=`(${d.slice(0,2)}) ${d.slice(2)}`;else el.value=d;}
+function onCep(el){let d=el.value.replace(/\D/g,'').slice(0,8);el.value=d.length>5?d.slice(0,5)+'-'+d.slice(5):d;
+  if(d.length===8)buscarCep(d);else{_cepInfo=null;$('#cepFb').className='cep-feedback';$('#cepFb').textContent='';$('#boxEndereco').style.display='none';}}
+async function buscarCep(cep){const fb=$('#cepFb');fb.className='cep-feedback load';fb.innerHTML='<span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Buscando CEP…';
+  try{const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);const j=await r.json();
+    if(j.erro){_cepInfo=null;fb.className='cep-feedback err';fb.textContent='✕ CEP não encontrado.';$('#boxEndereco').style.display='none';return;}
+    const ehMogi=(j.ibge===MOGI_IBGE)||/mogi gua/i.test(j.localidade||'');
+    if(!ehMogi){_cepInfo=null;fb.className='cep-feedback err';fb.textContent=`✕ Este CEP é de ${j.localidade||'outra cidade'}. Informe um CEP de Mogi Guaçu.`;$('#boxEndereco').style.display='none';return;}
+    _cepInfo={cep,logradouro:j.logradouro||'',bairro:j.bairro||'',localidade:j.localidade||'',uf:j.uf||''};
+    fb.className='cep-feedback ok';fb.textContent='✓ CEP de Mogi Guaçu confirmado.';
+    $('#boxEndereco').style.display='grid';$('#fLogradouro').value=j.logradouro||'';$('#fBairro').value=j.bairro||'';
+    centralizarPorEndereco();
+  }catch(e){fb.className='cep-feedback err';fb.textContent='✕ Não foi possível consultar o CEP agora.';}}
+function initMapaRegistrar(){if(S.mapaReg){S.mapaReg.remove();S.mapaReg=null;}
+  S.mapaReg=L.map('mapaRegistrar',{scrollWheelZoom:false}).setView(MOGI,13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(S.mapaReg);
+  S.markerReg=null;S.mapaReg.on('click',e=>{setMarker(e.latlng.lat,e.latlng.lng);reverseGeocode(e.latlng.lat,e.latlng.lng);});}
+function setMarker(lat,lng){if(S.markerReg)S.markerReg.setLatLng([lat,lng]);
+  else S.markerReg=L.marker([lat,lng],{draggable:true}).addTo(S.mapaReg).on('dragend',ev=>{const p=ev.target.getLatLng();S.markerReg._lat=p.lat;S.markerReg._lng=p.lng;atualizaPonto();reverseGeocode(p.lat,p.lng);});
+  S.markerReg._lat=lat;S.markerReg._lng=lng;atualizaPonto();}
+function atualizaPonto(){$('#pontoInfo').textContent=S.markerReg?'Ponto marcado ✓':'';}
+function limparMarcador(){if(S.markerReg){S.mapaReg.removeLayer(S.markerReg);S.markerReg=null;}atualizaPonto();}
+function usarMinhaLocalizacao(){if(!navigator.geolocation)return toast('Geolocalização indisponível.',true);
+  navigator.geolocation.getCurrentPosition(p=>{S.mapaReg.setView([p.coords.latitude,p.coords.longitude],17);setMarker(p.coords.latitude,p.coords.longitude);reverseGeocode(p.coords.latitude,p.coords.longitude);},
+    ()=>toast('Não foi possível obter sua localização.',true));}
+async function centralizarPorEndereco(){const log=$('#fLogradouro')?.value,bai=$('#fBairro')?.value;
+  const q=[log,bai,'Mogi Guaçu','SP','Brasil'].filter(Boolean).join(', ');
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(q)}`,{headers:{'Accept-Language':'pt-BR'}});
+    const j=await r.json();if(j&&j[0]){const la=+j[0].lat,ln=+j[0].lon;S.mapaReg.setView([la,ln],16);setMarker(la,ln);}else S.mapaReg.setView(MOGI,13);
+  }catch(e){S.mapaReg.setView(MOGI,13);}}
+async function reverseGeocode(lat,lng){const fb=$('#cepFb');if(fb){fb.className='cep-feedback load';fb.innerHTML='<span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Localizando endereço do ponto…';}
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=${lat}&lon=${lng}`,{headers:{'Accept-Language':'pt-BR'}});
+    const j=await r.json();const a=j.address||{};const cidade=a.city||a.town||a.municipality||a.village||'';
+    const ehMogi=/mogi gua/i.test(cidade)||/mogi gua/i.test(j.display_name||'');
+    const cep=(a.postcode||'').replace(/\D/g,'');
+    if(!ehMogi){if(fb){fb.className='cep-feedback err';fb.textContent='✕ Este ponto não parece estar em Mogi Guaçu. Marque dentro da cidade.';}_cepInfo=null;return;}
+    const log=a.road||'',bai=a.suburb||a.neighbourhood||a.city_district||'';
+    _cepInfo={cep:cep||'',logradouro:log,bairro:bai,localidade:cidade||'Mogi Guaçu',uf:a.state_code||'SP'};
+    if(cep.length===8&&$('#fCep'))$('#fCep').value=cep.slice(0,5)+'-'+cep.slice(5);
+    $('#boxEndereco').style.display='grid';$('#fLogradouro').value=log;$('#fBairro').value=bai;
+    if(fb){fb.className='cep-feedback ok';fb.textContent=cep.length===8?'✓ Endereço do ponto localizado (CEP preenchido).':'✓ Ponto em Mogi Guaçu localizado.';}
+  }catch(e){if(fb){fb.className='cep-feedback err';fb.textContent='✕ Não foi possível localizar o endereço do ponto.';}}}
+function addFotos(ev){const files=[...ev.target.files].slice(0,3-S.formImgs.length);
+  files.forEach(f=>{if(!f.type.startsWith('image/'))return;comprimir(f).then(o=>{S.formImgs.push(o);renderThumbs('thumbs',S.formImgs,'rmFoto');});});ev.target.value='';}
+function comprimir(file){return new Promise(res=>{const img=new Image();const url=URL.createObjectURL(file);
+  img.onload=()=>{URL.revokeObjectURL(url);const MAX=1280;let {width:w,height:h}=img;
+    if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+    let q=0.62,data=c.toDataURL('image/jpeg',q);while(data.length>240000&&q>0.3){q-=0.1;data=c.toDataURL('image/jpeg',q);}
+    res({b64:data.split(',')[1],mime:'image/jpeg',bytes:Math.round(data.length*0.75),preview:data});};img.src=url;});}
+function renderThumbs(id,arr,rmfn){$('#'+id).innerHTML=arr.map((o,i)=>`<div class="thumb"><img src="${o.preview}"><button onclick="${rmfn}(${i})">×</button></div>`).join('');}
+function rmFoto(i){S.formImgs.splice(i,1);renderThumbs('thumbs',S.formImgs,'rmFoto');}
+async function enviarReclamacao(){
+  const nome=$('#fNome').value.trim(),email=$('#fEmail').value.trim(),tel=$('#fTelefone').value.replace(/\D/g,'');
+  const cep=(_cepInfo?.cep||$('#fCep').value||'').replace(/\D/g,'');
+  if(!nome){toast('Informe seu nome.',true);$('#fNome').focus();return;}
+  if(!reEmail.test(email)){toast('Informe um e-mail válido.',true);$('#fEmail').focus();return;}
+  if(tel.length<10){toast('Informe um celular válido com DDD.',true);$('#fTelefone').focus();return;}
+  if(!($('#fDescricao').value||'').trim()){toast('Descreva sua manifestação.',true);$('#fDescricao').focus();return;}
+  if(!_cepInfo||cep.length!==8){toast('Informe um CEP válido de Mogi Guaçu (ou marque um ponto no mapa).',true);$('#fCep').focus();return;}
+  const dados={tipo:$('#segTipo .on')?.dataset.v||'reclamacao',categoria:$('#fCategoria').value,titulo:$('#fTitulo').value.trim(),
+    descricao:$('#fDescricao').value.trim(),nome,email,telefone:$('#fTelefone').value,ddi:$('#fDDI').value,
+    cep,logradouro:_cepInfo.logradouro||'',bairro:_cepInfo.bairro||'',localidade:_cepInfo.localidade||'',uf:_cepInfo.uf||'',
+    latitude:S.markerReg?String(S.markerReg._lat):'',longitude:S.markerReg?String(S.markerReg._lng):'',
+    imagens:S.formImgs.map(o=>({b64:o.b64,mime:o.mime,bytes:o.bytes}))};
+  const b=$('#btnEnviar');b.disabled=true;b.innerHTML='<span class="spinner"></span> Enviando…';
+  const {data,error}=await _sb.rpc('fg_criar_reclamacao',{p_dados:dados});
+  b.disabled=false;b.textContent='Enviar manifestação';
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro ao enviar.',true);return;}
+  mostrarProtocolo(data.protocolo);}
+function mostrarProtocolo(protocolo){$('#formArea').innerHTML=`
+  <div class="proto-box"><small>Manifestação registrada com sucesso 🎉</small>
+    <div class="tok">${esc(protocolo)}</div>
+    <div><small>Guarde este protocolo. Enviamos uma cópia para o seu e-mail.</small></div>
+    <div style="margin-top:10px"><button class="copy" onclick="copiar('${esc(protocolo)}')">copiar protocolo</button></div></div>
+  <div class="card" style="margin-top:18px"><div class="pad" style="text-align:center">
+    <p style="color:var(--muted);margin:0 0 16px">Use o protocolo na aba <b>Acompanhar</b> para ver o status, o prazo e as respostas. Você também receberá avisos por e-mail a cada andamento.</p>
+    <button class="btn btn-navy" onclick="abrirAcompanharCom('${esc(protocolo)}')">Acompanhar agora</button>
+    <button class="btn btn-ghost" onclick="ir('registrar')">Registrar outra</button></div></div>`;window.scrollTo(0,0);}
+function copiar(t){navigator.clipboard?.writeText(t).then(()=>toast('Copiado ✓')).catch(()=>toast('Copie manualmente: '+t));}
+function abrirAcompanharCom(p){ir('acompanhar');setTimeout(()=>{$('#aProtocolo').value=p;consultarProtocolo();},80);}
+
+/* ===== MAPA PÚBLICO (aglutina por região, símbolo por tipo) ===== */
+function renderMapa(){app().innerHTML=`<div class="wrap"><h1 class="page-title">Mapa da cidade</h1>
+  <p class="page-sub">Manifestações registradas pela população, agrupadas por região. O símbolo indica o tipo. Os dados são anonimizados.</p>
+  <div class="card"><div class="pad">
+    <div id="mapaPublico"></div>
+    <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)">
+      ${TIPOS.map(t=>`<span>${TIPO_ICON[t[0]]} ${t[1]}</span>`).join('')}</div>
+    <div id="resumoPublico" style="margin-top:14px"></div>
+  </div></div></div>`;
+  setTimeout(carregarMapaPublico,60);}
+async function carregarMapaPublico(){
+  if(S.mapaPublico){S.mapaPublico.remove();S.mapaPublico=null;}
+  S.mapaPublico=L.map('mapaPublico').setView(MOGI,13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(S.mapaPublico);
+  const {data}=await _sb.rpc('fg_mapa_publico');
+  const pts=(data?.pontos)||[];
+  S.clusterPub=L.markerClusterGroup({maxClusterRadius:50});
+  const grp=[],porTipo={},porBairro={};
+  pts.forEach(p=>{if(p.lat==null||p.lng==null)return;porTipo[p.tipo]=(porTipo[p.tipo]||0)+1;if(p.bairro)porBairro[p.bairro]=(porBairro[p.bairro]||0)+1;
+    const ic=L.divIcon({html:`<div class="pin" style="background:${TIPO_COR[p.tipo]||'#6B7280'}"><span>${TIPO_ICON[p.tipo]||'📌'}</span></div>`,className:'',iconSize:[30,30],iconAnchor:[15,28]});
+    const m=L.marker([p.lat,p.lng],{icon:ic});
+    m.bindPopup(`<b>${TIPO_LABEL[p.tipo]||p.tipo}</b>${p.categoria?'<br>'+esc(p.categoria):''}${p.bairro?'<br>'+esc(p.bairro):''}<br>${STATUS_LABEL[p.status]||p.status} · ${SLA_LABEL[p.sla_situacao]||''}<br>👥 ${p.apoios||0} apoio(s)<br><a href="#" onclick="abrirContribuir(${p.id});return false">Acrescentar informação →</a>`);
+    S.clusterPub.addLayer(m);grp.push([p.lat,p.lng]);});
+  S.mapaPublico.addLayer(S.clusterPub);
+  if(grp.length)S.mapaPublico.fitBounds(grp,{padding:[40,40],maxZoom:15});
+  const tipoHtml=Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<span class="apoios-tag" style="margin:3px">${TIPO_ICON[t]||''} ${TIPO_LABEL[t]||t}: <b>${n}</b></span>`).join('');
+  const baiHtml=Object.entries(porBairro).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([b,n])=>`<span class="apoios-tag" style="margin:3px">${esc(b)}: <b>${n}</b></span>`).join('');
+  $('#resumoPublico').innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;margin-bottom:6px">Por tipo</div>${tipoHtml||'<span style="color:var(--muted)">Sem dados ainda.</span>'}
+    ${baiHtml?`<div style="font-size:12px;font-weight:800;color:var(--gold-dark);text-transform:uppercase;margin:12px 0 6px">Por bairro</div>${baiHtml}`:''}`;}
+async function abrirContribuir(id){const ov=$('#overlay'),dw=$('#drawer');
+  dw.innerHTML=`<div class="db center-load"><span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Abrindo…</div>`;ov.classList.add('show');
+  const {data}=await _sb.rpc('fg_ver_publica',{p_id:id});const r=data?.reclamacao;
+  if(!r){dw.innerHTML=`<div class="db" style="color:var(--danger)">Não foi possível abrir.</div>`;return;}
+  S.contribImgs=[];
+  dw.innerHTML=`<div class="dh"><h3>${TIPO_ICON[r.tipo]||''} ${TIPO_LABEL[r.tipo]||r.tipo}</h3><button class="x" onclick="fecharDrawer()">×</button></div>
+   <div class="db">
+     <div class="kv"><span class="k">Tema</span><span>${esc(r.categoria||'—')}</span></div>
+     <div class="kv"><span class="k">Bairro</span><span>${esc(r.bairro||'—')}</span></div>
+     <div class="kv"><span class="k">Status</span><span>${badge(r.status)} ${slaBadge(r.sla)}</span></div>
+     <div class="kv"><span class="k">Registrada</span><span>${fmtData(r.criado_em)}</span></div>
+     <div class="kv"><span class="k">Apoios</span><span>👥 ${r.apoios||0}</span></div>
+     <div style="border-top:1px dashed var(--line);margin-top:14px;padding-top:14px">
+       <span class="lab" style="display:block;font-weight:700;color:var(--navy);margin-bottom:6px">Você também tem esse problema? Acrescente informações (sem alterar o registro original).</span>
+       <div class="row c2">
+         <label class="fld"><span class="lab">Seu nome <span class="req">*</span></span><input class="inp" id="kNome"></label>
+         <label class="fld"><span class="lab">E-mail <span class="req">*</span></span><input class="inp" id="kEmail" type="email"></label></div>
+       <textarea id="kMsg" placeholder="Descreva o que você observou (opcional se só quiser apoiar)…"></textarea>
+       <label class="uploader" for="kFotos" style="margin-top:10px">📷 Anexar foto (opcional)</label>
+       <input id="kFotos" type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addContribFotos(event)">
+       <div class="thumbs" id="kThumbs"></div>
+       <button class="btn btn-gold" id="btnContrib" style="margin-top:14px" onclick="enviarContribuicao(${id})">Enviar / Apoiar</button>
+     </div></div>`;}
+function addContribFotos(ev){const files=[...ev.target.files].slice(0,3-S.contribImgs.length);
+  files.forEach(f=>{if(!f.type.startsWith('image/'))return;comprimir(f).then(o=>{S.contribImgs.push(o);renderThumbs('kThumbs',S.contribImgs,'rmContribFoto');});});ev.target.value='';}
+function rmContribFoto(i){S.contribImgs.splice(i,1);renderThumbs('kThumbs',S.contribImgs,'rmContribFoto');}
+async function enviarContribuicao(id){const nome=$('#kNome').value.trim(),email=$('#kEmail').value.trim();
+  if(!nome){toast('Informe seu nome.',true);return;}if(!reEmail.test(email)){toast('Informe um e-mail válido.',true);return;}
+  const b=$('#btnContrib');b.disabled=true;b.innerHTML='<span class="spinner"></span> Enviando…';
+  const {data,error}=await _sb.rpc('fg_contribuir',{p_id:id,p_dados:{nome,email,mensagem:$('#kMsg').value.trim(),imagens:S.contribImgs.map(o=>({b64:o.b64,mime:o.mime,bytes:o.bytes}))}});
+  b.disabled=false;b.textContent='Enviar / Apoiar';
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}
+  toast('Obrigado! Sua contribuição foi registrada ✓');fecharDrawer();carregarMapaPublico();}
+
+/* ===== ACOMPANHAR ===== */
+function renderAcompanhar(){app().innerHTML=`<div class="wrap"><h1 class="page-title">Acompanhar manifestação</h1>
+  <p class="page-sub">Informe o número de protocolo completo que você recebeu ao registrar.</p>
+  <div class="card" style="max-width:560px"><div class="pad">
+    <label class="fld"><span class="lab">Protocolo</span><input class="inp" id="aProtocolo" placeholder="FG-2026-000001-XXXXXXXX" style="text-transform:uppercase"></label>
+    <button class="btn btn-gold btn-block" id="btnConsultar" onclick="consultarProtocolo()">Consultar status</button></div></div>
+  <div id="acompResult" style="margin-top:18px"></div></div>`;}
+async function consultarProtocolo(){const p=$('#aProtocolo').value.trim();if(!p){toast('Informe o protocolo.',true);return;}
+  const b=$('#btnConsultar');b.disabled=true;b.innerHTML='<span class="spinner"></span> Consultando…';
+  const {data,error}=await _sb.rpc('fg_consultar_protocolo',{p_protocolo:p});
+  b.disabled=false;b.textContent='Consultar status';const out=$('#acompResult');
+  if(error||!data?.sucesso){out.innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">✕ ${esc(data?.mensagem||'Não encontrado.')}</div></div>`;return;}
+  const r=data.reclamacao,inter=data.interacoes||[],sla=r.sla||{};
+  out.innerHTML=`<div class="card"><div class="card-h"><div><h3>${esc(r.protocolo)}</h3>
+      <div class="sub">${esc(TIPO_LABEL[r.tipo]||r.tipo)}${r.categoria?' · '+esc(r.categoria):''}${r.bairro?' · '+esc(r.bairro):''}</div></div>
+      <div style="margin-left:auto;text-align:right">${badge(r.status)}<br><span style="display:inline-block;margin-top:6px">${slaBadge(sla)}</span></div></div>
+    <div class="pad">
+      <div class="row c3" style="margin-bottom:18px">
+        <div class="stat-card"><div class="l">Registrada em</div><div style="font-weight:700;color:var(--navy);margin-top:4px">${fmtData(r.criado_em)}</div></div>
+        <div class="stat-card"><div class="l">Prazo de resposta</div><div style="font-weight:700;color:var(--navy);margin-top:4px">${sla.prazo_efetivo?fmtData(sla.prazo_efetivo):'—'}</div></div>
+        <div class="stat-card"><div class="l">Situação do prazo</div><div style="margin-top:6px">${slaBadge(sla)}</div></div></div>
+      <div class="timeline">${inter.map(tlItem).join('')}</div>
+      ${r.pode_complementar?formComplemento():''}
+      ${blocoAvaliacao(r)}</div></div>`;}
+function blocoAvaliacao(r){
+  if(r.status!=='finalizada')return '';
+  if(r.nota_satisfacao)return `<div style="margin-top:20px;border-top:1px dashed var(--line);padding-top:16px;text-align:center;color:var(--muted)">Você avaliou este atendimento: <span style="color:var(--gold);font-size:20px">${'★'.repeat(r.nota_satisfacao)}${'☆'.repeat(5-r.nota_satisfacao)}</span> — obrigado!</div>`;
+  if(!r.pode_avaliar)return '';
+  return `<div style="margin-top:20px;border-top:1px dashed var(--line);padding-top:18px;text-align:center">
+    <div class="lab" style="font-weight:700;color:var(--navy);margin-bottom:8px">Sua manifestação foi finalizada. Como você avalia o atendimento?</div>
+    <div id="estrelas" style="font-size:34px;color:var(--gold);cursor:pointer;letter-spacing:6px" onmouseleave="pintarEstrelas(_avalNota)">
+      ${[1,2,3,4,5].map(n=>`<span data-n="${n}" onclick="avaliar(${n})" onmouseover="pintarEstrelas(${n})" style="transition:.1s">☆</span>`).join('')}</div>
+    <div id="avalMsg" style="font-size:13px;color:var(--muted);margin-top:6px">Toque numa estrela para avaliar.</div></div>`;}
+let _avalNota=0;
+function pintarEstrelas(n){$$('#estrelas span').forEach(x=>{x.textContent=(+x.dataset.n<=n)?'★':'☆';});}
+async function avaliar(n){_avalNota=n;pintarEstrelas(n);
+  const {data,error}=await _sb.rpc('fg_avaliar_atendimento',{p_protocolo:$('#aProtocolo').value.trim(),p_nota:n});
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro ao avaliar.',true);return;}
+  toast('Obrigado pela avaliação ✓');const m=$('#avalMsg');if(m)m.textContent='Avaliação registrada — obrigado!';}
+function tlItem(i){const atend=i.autor==='atendente';const contrib=i.tipo_acao==='contribuicao';
+  const acao={abertura:'Manifestação registrada',complemento:'Complemento enviado pelo cidadão',contribuicao:'Contribuição de outro cidadão',resposta:'Resposta da equipe',pedido_complemento:'A equipe pediu mais informações',finalizacao:'Manifestação finalizada',em_tratamento:'Recebida — em tratamento',suspensao:'Manifestação suspensa',reabertura:'Manifestação reaberta'}[i.tipo_acao]||'';
+  return `<div class="tl-item ${atend?'atend':''} ${contrib?'contrib':''}">
+    <span class="dot" style="background:${atend?'#2D7DD2':(contrib?'#F2A900':'#9A6B00')}"></span>
+    <div class="who"><b>${esc(i.autor_nome)}</b> · ${fmtData(i.criado_em)}${acao?' · '+acao:''}</div>
+    <div class="msg">${esc(i.mensagem)}
+      ${(i.anexos&&i.anexos.length)?`<div class="tl-anexos">${i.anexos.map(a=>`<img src="data:${mimeImg(a.mime)};base64,${esc(a.b64)}" onclick="verImg(this.src)">`).join('')}</div>`:''}</div></div>`;}
+function formComplemento(){S.compImgs=[];
+  return `<div style="margin-top:20px;border-top:1px dashed var(--line);padding-top:18px">
+    <span class="lab" style="display:block;font-weight:700;color:var(--navy);margin-bottom:6px">A equipe pediu mais informações — responda abaixo:</span>
+    <textarea id="cMsg" placeholder="Adicione as informações solicitadas…"></textarea>
+    <label class="uploader" for="cFotos" style="margin-top:10px">📷 Anexar foto (opcional)</label>
+    <input id="cFotos" type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="addCompFotos(event)">
+    <div class="thumbs" id="cThumbs"></div>
+    <button class="btn btn-gold" id="btnComp" style="margin-top:14px" onclick="enviarComplemento()">Enviar complemento</button></div>`;}
+function addCompFotos(ev){const files=[...ev.target.files].slice(0,3-S.compImgs.length);
+  files.forEach(f=>{if(!f.type.startsWith('image/'))return;comprimir(f).then(o=>{S.compImgs.push(o);renderThumbs('cThumbs',S.compImgs,'rmCompFoto');});});ev.target.value='';}
+function rmCompFoto(i){S.compImgs.splice(i,1);renderThumbs('cThumbs',S.compImgs,'rmCompFoto');}
+async function enviarComplemento(){const msg=$('#cMsg').value.trim();if(!msg){toast('Escreva o complemento.',true);return;}
+  const b=$('#btnComp');b.disabled=true;b.innerHTML='<span class="spinner"></span> Enviando…';
+  const {data,error}=await _sb.rpc('fg_adicionar_complemento',{p_protocolo:$('#aProtocolo').value.trim(),p_mensagem:msg,p_imagens:S.compImgs.map(o=>({b64:o.b64,mime:o.mime,bytes:o.bytes}))});
+  b.disabled=false;b.textContent='Enviar complemento';
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}toast('Complemento enviado ✓');consultarProtocolo();}
+function verImg(src){$('#imgViewerImg').src=src;$('#imgViewer').classList.add('show');}
+
+/* ===== EQUIPE ===== */
+async function renderEquipe(){if(!S.sessao){renderLogin();return;}renderPainel();}
+function renderLogin(){app().innerHTML=`<div class="login-wrap"><div class="card"><div class="pad">
+  <div style="text-align:center;margin-bottom:18px">
+    <svg width="48" height="48" viewBox="0 0 64 64"><path d="M8 26c0-2 1.6-3.6 3.6-3.6H22L41 12c1.7-1 3.9.2 3.9 2.2v35.6c0 2-2.2 3.2-3.9 2.2L22 41.6H11.6C9.6 41.6 8 40 8 38V26Z" fill="#0B2E54"/></svg>
+    <h3 style="margin:8px 0 2px;color:var(--navy)">Acesso da equipe</h3>
+    <div style="font-size:13px;color:var(--muted)">Administradores e operadores do FalaGuaçu</div></div>
+  <label class="fld"><span class="lab">Usuário ou e-mail</span><input class="inp" id="lUser" autocomplete="username"></label>
+  <label class="fld"><span class="lab">Senha</span><input class="inp" type="password" id="lSenha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"></label>
+  <button class="btn btn-navy btn-block" id="btnLogin" onclick="fazerLogin()">Entrar</button>
+  <div style="text-align:center;margin-top:14px"><a onclick="ir('home')" style="font-size:13px;color:var(--muted);cursor:pointer">← Voltar ao início</a></div>
+</div></div></div>`;}
+async function fazerLogin(){let user=$('#lUser').value.trim(),senha=$('#lSenha').value;
+  if(!user||!senha){toast('Preencha usuário e senha.',true);return;}
+  const b=$('#btnLogin');b.disabled=true;b.innerHTML='<span class="spinner"></span> Entrando…';
+  try{let email=user;if(!email.includes('@')){const {data:em}=await _sb.rpc('fg_buscar_email_por_nome',{p_nome:user});if(!em)throw new Error('Usuário não encontrado.');email=em;}
+    const {data,error}=await _sb.auth.signInWithPassword({email,password:senha});if(error)throw new Error('Credenciais inválidas.');
+    const {data:papel}=await _sb.rpc('fg_meu_papel');if(!papel){await _sb.auth.signOut();throw new Error('Sem acesso ao FalaGuaçu.');}
+    S.sessao=data.session;S.papel=papel;toast('Bem-vindo(a)!');renderPainel();
+  }catch(e){toast(e.message||'Erro ao entrar.',true);}finally{b.disabled=false;b.textContent='Entrar';}}
+async function sair(){await _sb.auth.signOut();S.sessao=null;S.papel=null;if(S.mapaPainel){S.mapaPainel.remove();S.mapaPainel=null;}ir('home');}
+let _abaEquipe='painel';
+function renderPainel(){const ehAdmin=S.papel==='admin';
+  app().innerHTML=`<div class="wrap" style="padding-top:24px">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+      <h1 class="page-title" style="margin:0">Painel da equipe</h1>
+      <span class="badge b-recebida">${ehAdmin?'Administrador':'Operador'}</span>
+      <div style="margin-left:auto"><button class="btn btn-ghost btn-sm" onclick="sair()">Sair</button></div></div>
+    <div class="seg" style="margin-bottom:18px">
+      <button class="${_abaEquipe==='painel'?'on':''}" onclick="setAba('painel')">Visão geral</button>
+      <button class="${_abaEquipe==='fila'?'on':''}" onclick="setAba('fila')">Fila de atendimento</button>
+      ${ehAdmin?`<button class="${_abaEquipe==='prazos'?'on':''}" onclick="setAba('prazos')">Prazos (SLA)</button>`:''}
+      ${ehAdmin?`<button class="${_abaEquipe==='log'?'on':''}" onclick="setAba('log')">Auditoria</button>`:''}
+      ${ehAdmin?`<button class="${_abaEquipe==='ops'?'on':''}" onclick="setAba('ops')">Operadores</button>`:''}</div>
+    <div id="abaArea"><div class="center-load"><span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Carregando…</div></div></div>`;
+  if(_abaEquipe==='painel')carregarVisaoGeral();else if(_abaEquipe==='fila')carregarFila();
+  else if(_abaEquipe==='prazos')carregarPrazos();else if(_abaEquipe==='log')carregarLog();else if(_abaEquipe==='ops')carregarOperadores();}
+function setAba(a){_abaEquipe=a;renderPainel();}
+async function carregarVisaoGeral(){const {data,error}=await _sb.rpc('fg_estatisticas');
+  if(error||!data?.sucesso){$('#abaArea').innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">Erro ao carregar.</div></div>`;return;}
+  const bairros=Object.entries(data.por_bairro||{});
+  $('#abaArea').innerHTML=`<div class="stat-grid">
+      <div class="stat-card accent"><div class="n">${data.total}</div><div class="l">Total</div></div>
+      <div class="stat-card"><div class="n" style="color:var(--amber)">${data.pendentes}</div><div class="l">Pendentes</div></div>
+      <div class="stat-card"><div class="n" style="color:var(--danger)">${data.em_atraso||0}</div><div class="l">Em atraso (SLA)</div></div>
+      <div class="stat-card"><div class="n" style="color:var(--ok)">${data.finalizada}</div><div class="l">Finalizadas</div></div></div>
+    <div class="stat-grid" style="grid-template-columns:repeat(6,1fr)">
+      ${['gerada','recebida','a_completar','respondida','suspensa','finalizada'].map(s=>`<div class="stat-card"><div class="n" style="font-size:20px">${data[s]||0}</div><div class="l">${badge(s)}</div></div>`).join('')}</div>
+    <div class="card"><div class="card-h"><div><h3>Mapa das manifestações</h3><div class="sub">cor = status</div></div></div>
+      <div class="pad"><div id="mapaPainel"></div></div></div>
+    ${(data.por_categoria&&Object.keys(data.por_categoria).length)?`<div class="card" style="margin-top:18px"><div class="card-h"><div><h3>Por tema</h3><div class="sub">distribuição das manifestações por categoria</div></div></div><div class="pad">${barrasCategoria(data.por_categoria,data.total)}</div></div>`:''}
+    ${(data.satisfacao_qtd>0)?`<div class="stat-grid" style="margin-top:18px"><div class="stat-card accent"><div class="n">${(data.satisfacao_media||0).toFixed(1)}<span style="font-size:16px"> / 5</span></div><div class="l">Satisfação média (${data.satisfacao_qtd} ${data.satisfacao_qtd===1?'avaliação':'avaliações'})</div></div></div>`:''}
+    <div class="card" style="margin-top:18px"><div class="card-h"><div><h3>Tendência no tempo</h3><div class="sub">manifestações registradas por mês</div></div></div><div class="pad" id="serieTempo"><div class="center-load"><span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Carregando…</div></div></div>
+    ${(data.matriz&&data.matriz.length)?`<div class="card" style="margin-top:18px"><div class="card-h"><div><h3>Bairro × Tema</h3><div class="sub">onde cada problema se concentra na cidade</div></div></div><div class="pad" style="overflow:auto">${matrizBairroTema(data.matriz)}</div></div>`:''}
+    ${bairros.length?`<div class="card" style="margin-top:18px"><div class="card-h"><h3>Por bairro</h3></div><div class="pad">
+      ${bairros.map(([b,n])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px"><span>${esc(b)}</span><b>${n}</b></div>`).join('')}</div></div>`:''}`;
+  setTimeout(()=>initMapaPainel(data.pontos||[]),60);
+  carregarSerieTempo();}
+function barrasCategoria(obj,total){const ents=Object.entries(obj).sort((a,b)=>b[1]-a[1]);const max=Math.max(...ents.map(e=>e[1]),1);
+  return ents.map(([c,n])=>`<div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+    <div style="width:150px;font-size:13px;flex:0 0 auto">${esc(c)}</div>
+    <div style="flex:1;background:var(--soft);border-radius:6px;overflow:hidden;height:16px"><div style="width:${Math.round(n/max*100)}%;height:100%;background:var(--navy2)"></div></div>
+    <div style="width:66px;text-align:right;font-size:13px"><b>${n}</b> <span style="color:var(--muted)">${total?Math.round(n/total*100):0}%</span></div></div>`).join('');}
+function matrizBairroTema(arr){const bairros=[...new Set(arr.map(x=>x.bairro))];const temas=[...new Set(arr.map(x=>x.categoria))];
+  const m={};arr.forEach(x=>{m[x.bairro+'|'+x.categoria]=x.n;});
+  let h='<table style="border-collapse:collapse;font-size:12.5px;min-width:520px"><tr><th style="text-align:left;padding:6px 8px;color:var(--muted);position:sticky;left:0;background:#fff">Bairro</th>'+temas.map(t=>`<th style="padding:6px 8px;color:var(--muted);text-align:center">${esc(t)}</th>`).join('')+'</tr>';
+  bairros.forEach(b=>{h+=`<tr><td style="padding:6px 8px;font-weight:600;border-top:1px solid var(--line);position:sticky;left:0;background:#fff">${esc(b)}</td>`+temas.map(t=>{const v=m[b+'|'+t]||0;return `<td style="padding:6px 8px;text-align:center;border-top:1px solid var(--line);background:${v?`rgba(45,125,210,${Math.min(.12+v*0.08,.7)})`:'transparent'}">${v||''}</td>`;}).join('')+'</tr>';});
+  return h+'</table>';}
+async function carregarSerieTempo(){const box=$('#serieTempo');if(!box)return;
+  const {data}=await _sb.rpc('fg_serie_temporal');const meses=(data?.meses)||[];
+  if(!meses.length){box.innerHTML='<div style="color:var(--muted);text-align:center">Sem dados ainda.</div>';return;}
+  const max=Math.max(...meses.map(m=>m.total),1),W=Math.max(meses.length*64,320),H=160,pad=10,step=(W-pad*2)/meses.length,bw=Math.min(44,step-12);
+  let svg=`<svg viewBox="0 0 ${W} ${H+34}" style="width:100%;max-width:${W}px">`;
+  meses.forEach((m,i)=>{const x=pad+i*step+(step-bw)/2,h=Math.round(m.total/max*H),y=H-h+10;
+    svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="3" fill="var(--navy2)"></rect>`;
+    svg+=`<text x="${x+bw/2}" y="${y-4}" text-anchor="middle" font-size="11" fill="var(--ink)">${m.total}</text>`;
+    svg+=`<text x="${x+bw/2}" y="${H+26}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(m.mes)}</text>`;});
+  box.innerHTML=svg+'</svg>';}
+function initMapaPainel(pontos){if(S.mapaPainel){S.mapaPainel.remove();S.mapaPainel=null;}
+  S.mapaPainel=L.map('mapaPainel').setView(MOGI,13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(S.mapaPainel);
+  const grp=[];pontos.forEach(p=>{if(p.lat==null||p.lng==null)return;
+    const m=L.circleMarker([p.lat,p.lng],{radius:8,color:'#fff',weight:2,fillColor:STATUS_DOT[p.status]||'#888',fillOpacity:.95}).addTo(S.mapaPainel);
+    m.bindPopup(`<b>${esc(p.protocolo)}</b><br>${TIPO_LABEL[p.tipo]||p.tipo} · ${STATUS_LABEL[p.status]||p.status}${p.bairro?'<br>'+esc(p.bairro):''}<br><a href="#" onclick="abrirDetalhe(${p.id});return false">Abrir →</a>`);
+    grp.push([p.lat,p.lng]);});
+  if(grp.length)S.mapaPainel.fitBounds(grp,{padding:[40,40],maxZoom:15});}
+let _filaOrdem='urgentes';
+async function carregarFila(){$('#abaArea').innerHTML=`<div class="filters">
+    <input class="inp" id="fBusca" placeholder="Buscar protocolo, bairro, texto…" style="max-width:280px" onkeydown="if(event.key==='Enter')carregarFilaLista()">
+    <select class="inp" id="fStatusSel" style="max-width:170px" onchange="carregarFilaLista()"><option value="">Todos os status</option>
+      ${Object.entries(STATUS_LABEL).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+    <select class="inp" id="fCatSel" style="max-width:200px" onchange="carregarFilaLista()"><option value="">Todos os temas</option>
+      ${CATEGORIAS.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>
+    <select class="inp" id="fOrdemSel" style="max-width:200px" onchange="carregarFilaLista()">
+      <option value="urgentes">Prioridade: mais urgentes</option>
+      <option value="apoios">Prioridade: mais apoiadas</option>
+      <option value="recentes">Mais recentes</option>
+      <option value="antigas">Mais antigas</option></select>
+    <button class="btn btn-ghost btn-sm" onclick="carregarFilaLista()">Buscar</button></div>
+   <div id="filaLista"><div class="center-load"><span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Carregando…</div></div>`;
+  carregarFilaLista();}
+async function carregarFilaLista(){const busca=$('#fBusca')?.value||'',st=$('#fStatusSel')?.value||'',ordem=$('#fOrdemSel')?.value||'urgentes',cat=$('#fCatSel')?.value||'';
+  const {data,error}=await _sb.rpc('fg_listar_reclamacoes',{p_status:st||null,p_busca:busca||null,p_ordem:ordem,p_categoria:cat||null,p_limit:200,p_offset:0});
+  const box=$('#filaLista');if(error||!data?.sucesso){box.innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">Erro ao listar.</div></div>`;return;}
+  const itens=data.itens||[];if(!itens.length){box.innerHTML=`<div class="card"><div class="pad" style="color:var(--muted);text-align:center">Nenhuma manifestação.</div></div>`;return;}
+  box.innerHTML=itens.map(r=>`<div class="list-item" onclick="abrirDetalhe(${r.id})">
+    <div class="pr">${TIPO_ICON[r.tipo]||''}<br>${esc(r.protocolo.split('-').slice(0,3).join('-'))}</div>
+    <div><div class="ti">${esc(r.titulo||TIPO_LABEL[r.tipo]||r.tipo)}</div>
+      <div class="me">${r.bairro?esc(r.bairro)+' · ':''}${r.categoria?esc(r.categoria)+' · ':''}${fmtData(r.criado_em)}</div>
+      <div style="margin-top:6px">${badge(r.status)} ${slaBadge(r.sla)} <span class="apoios-tag">👥 ${r.apoios||0}</span>${r.ativo===false?' <span class="badge b-suspensa">desativada</span>':''}</div></div>
+    <div>→</div></div>`).join('');}
+async function abrirDetalhe(id){const ov=$('#overlay'),dw=$('#drawer');
+  dw.innerHTML=`<div class="db center-load"><span class="spinner" style="border-color:#bbb;border-top-color:#666"></span> Abrindo…</div>`;ov.classList.add('show');
+  const {data,error}=await _sb.rpc('fg_obter_reclamacao',{p_id:id});
+  if(error||!data?.sucesso){dw.innerHTML=`<div class="db" style="color:var(--danger)">Erro ao abrir.</div>`;return;}
+  const r=data.reclamacao,inter=data.interacoes||[],sla=r.sla||{},c=data.contato||{};const ehAdmin=S.papel==='admin';
+  const final=r.status==='finalizada';_detAtual=id;
+  dw.innerHTML=`<div class="dh"><h3>${esc(r.protocolo)} ${badge(r.status)} ${slaBadge(sla)}</h3><button class="x" onclick="fecharDrawer()">×</button></div>
+   <div class="db">
+     <div class="contato-box"><div class="ct">Dados do solicitante (uso restrito da equipe)</div>
+       <div class="kv"><span class="k">Nome</span><span>${esc(c.nome||'—')}</span></div>
+       <div class="kv"><span class="k">E-mail</span><span>${esc(c.email||'—')}</span></div>
+       <div class="kv"><span class="k">Celular</span><span>${esc(c.telefone||'—')}</span></div></div>
+     <div class="kv"><span class="k">Tipo</span><span>${esc(TIPO_LABEL[r.tipo]||r.tipo)}${r.categoria?' · '+esc(r.categoria):''}</span></div>
+     ${r.titulo?`<div class="kv"><span class="k">Título</span><span>${esc(r.titulo)}</span></div>`:''}
+     <div class="kv"><span class="k">Descrição</span><span>${esc(r.descricao||'—')}</span></div>
+     <div class="kv"><span class="k">Local</span><span>${esc([r.logradouro,r.bairro].filter(Boolean).join(', ')||'—')} · CEP ${esc(r.cep||'—')}</span></div>
+     ${(r.latitude&&r.longitude)?`<div class="kv"><span class="k">Mapa</span><span><a href="https://www.openstreetmap.org/?mlat=${r.latitude}&mlon=${r.longitude}#map=17/${r.latitude}/${r.longitude}" target="_blank">ver ponto ↗</a></span></div>`:''}
+     <div class="kv"><span class="k">Registrada</span><span>${fmtData(r.criado_em)}</span></div>
+     <div class="kv"><span class="k">Prazo</span><span>${sla.prazo_efetivo?fmtData(sla.prazo_efetivo):'—'} · ${slaBadge(sla)}</span></div>
+     <div class="kv"><span class="k">Apoios</span><span>👥 ${r.apoios||0}</span></div>
+     <div style="border-top:1px solid var(--line);margin:16px 0;padding-top:16px"><div class="timeline">${inter.map(i=>tlItemAdmin(i,ehAdmin)).join('')}</div></div>
+     ${final?`<div style="text-align:center;color:var(--muted);font-size:14px">Esta manifestação foi finalizada.</div>`:`
+       <div style="border-top:1px dashed var(--line);padding-top:16px">
+         <span class="lab" style="display:block;font-weight:700;color:var(--navy);margin-bottom:6px">Responder (aparece como "Equipe FalaGuaçu")</span>
+         <textarea id="rMsg" placeholder="Escreva a resposta…"></textarea>
+         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+           <button class="btn btn-gold btn-sm" onclick="responder(${r.id},'responder')">Responder</button>
+           <button class="btn btn-ghost btn-sm" onclick="responder(${r.id},'pedir_complemento')">Pedir complemento</button>
+           ${r.status==='suspensa'?`<button class="btn btn-ghost btn-sm" onclick="responder(${r.id},'reabrir')">Reabrir</button>`:`<button class="btn btn-ghost btn-sm" onclick="responder(${r.id},'suspender')">Suspender (pausa SLA)</button>`}
+           <button class="btn btn-navy btn-sm" onclick="responder(${r.id},'finalizar')">Finalizar</button></div></div>`}
+     ${ehAdmin?`<div style="border-top:1px dashed var(--line);margin-top:16px;padding-top:14px">
+       <span class="lab" style="display:block;font-weight:700;color:var(--danger);margin-bottom:6px">Administração</span>
+       <div style="display:flex;gap:8px;flex-wrap:wrap">
+         ${r.ativo===false?`<button class="btn btn-ghost btn-sm" onclick="adminAcao('fg_admin_reativar',{p_id:${r.id}},${r.id})">Reativar</button>`:`<button class="btn btn-ghost btn-sm" onclick="if(confirm('Desativar esta manifestação? Sai do mapa público e da fila.'))adminAcao('fg_admin_desativar_reclamacao',{p_id:${r.id},p_motivo:prompt('Motivo (opcional):')||''},${r.id})">Desativar</button>`}
+         <button class="btn btn-danger btn-sm" onclick="if(confirm('Remover PERMANENTEMENTE os dados pessoais (nome, e-mail, telefone)? Não pode ser desfeito.'))adminAcao('fg_admin_anonimizar_reclamacao',{p_id:${r.id}},${r.id})">Anonimizar solicitante</button></div></div>`:''}
+   </div>`;}
+function tlItemAdmin(i,ehAdmin){const atend=i.autor==='atendente';const contrib=i.tipo_acao==='contribuicao';
+  const acao={abertura:'Registrada',complemento:'Complemento do cidadão',contribuicao:'Contribuição de outro cidadão',resposta:'Resposta da equipe',pedido_complemento:'Pediu complemento',finalizacao:'Finalizada',em_tratamento:'Em tratamento',suspensao:'Suspensa',reabertura:'Reaberta'}[i.tipo_acao]||'';
+  const modBtns=(ehAdmin&&!i.removida&&i.id)?`<div class="tl-mod">
+     <button class="btn btn-ghost btn-sm" onclick="if(confirm('Anonimizar o texto desta mensagem?'))adminAcao('fg_admin_anonimizar_interacao',{p_id:${i.id}},_detAtual)">Anonimizar texto</button>
+     ${(i.anexos&&i.anexos.length)?i.anexos.filter(a=>a.id).map(a=>`<button class="btn btn-ghost btn-sm" onclick="if(confirm('Excluir esta imagem?'))adminAcao('fg_admin_excluir_anexo',{p_id:${a.id}},_detAtual)">Excluir foto</button>`).join(''):''}
+   </div>`:'';
+  return `<div class="tl-item ${atend?'atend':''} ${contrib?'contrib':''}">
+    <span class="dot" style="background:${atend?'#2D7DD2':(contrib?'#F2A900':'#9A6B00')}"></span>
+    <div class="who"><b>${esc(i.autor_nome)}</b> · ${fmtData(i.criado_em)}${acao?' · '+acao:''}</div>
+    <div class="msg">${esc(i.mensagem)}
+      ${(i.anexos&&i.anexos.length)?`<div class="tl-anexos">${i.anexos.map(a=>`<img src="data:${mimeImg(a.mime)};base64,${esc(a.b64)}" onclick="verImg(this.src)">`).join('')}</div>`:''}
+      ${modBtns}</div></div>`;}
+let _detAtual=null;
+function fecharDrawer(){$('#overlay').classList.remove('show');}
+async function responder(id,acao){const msg=$('#rMsg').value.trim();
+  if(!msg){toast('Escreva a mensagem.',true);return;}
+  if(acao==='finalizar'&&!confirm('Finalizar esta manifestação?'))return;
+  const {data,error}=await _sb.rpc('fg_responder',{p_id:id,p_mensagem:msg,p_acao:acao});
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}
+  toast('Registrado ✓');fecharDrawer();if(_abaEquipe==='fila')carregarFilaLista();else carregarVisaoGeral();}
+async function adminAcao(fn,params,reabrirId){_detAtual=reabrirId;
+  const {data,error}=await _sb.rpc(fn,params);
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}
+  toast('Feito ✓');if(reabrirId)abrirDetalhe(reabrirId);if(_abaEquipe==='fila')carregarFilaLista();}
+async function carregarPrazos(){const {data,error}=await _sb.rpc('fg_prazos_listar');
+  if(error||!data?.sucesso){$('#abaArea').innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">Erro.</div></div>`;return;}
+  const m=Object.fromEntries((data.itens||[]).map(x=>[x.tipo,x.dias]));
+  $('#abaArea').innerHTML=`<div class="card"><div class="card-h"><div><h3>Prazos de resposta por tipo (SLA)</h3><div class="sub">Em dias corridos. O prazo é fixado no momento do registro de cada manifestação.</div></div></div>
+    <div class="pad">${TIPOS.map(t=>`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1;font-weight:600">${TIPO_ICON[t[0]]} ${t[1]}</div>
+      <input class="inp" id="pz_${t[0]}" type="number" min="1" max="365" value="${m[t[0]]??10}" style="max-width:110px">
+      <span style="color:var(--muted);font-size:13px">dias</span>
+      <button class="btn btn-gold btn-sm" onclick="salvarPrazo('${t[0]}')">Salvar</button></div>`).join('')}</div></div>`;}
+async function salvarPrazo(tipo){const dias=parseInt($('#pz_'+tipo).value,10);if(!dias||dias<1){toast('Dias inválidos.',true);return;}
+  const {data,error}=await _sb.rpc('fg_admin_prazo_set',{p_tipo:tipo,p_dias:dias});
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}toast('Prazo salvo ✓');}
+async function carregarLog(){const {data,error}=await _sb.rpc('fg_admin_log_listar',{p_limit:200,p_offset:0});
+  if(error||!data?.sucesso){$('#abaArea').innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">Acesso restrito.</div></div>`;return;}
+  const itens=data.itens||[];const ACAO={criou_operador:'➕',editou_operador:'✏️',desativou:'🚫',reativou:'✅',anonimizou_reclamacao:'🕵️',anonimizou_interacao:'🩹',excluiu_anexo:'🗑️',respondeu:'💬',pediu_complemento:'❓',finalizou:'🏁',suspendeu:'⏸️',reabriu:'▶️',em_tratamento:'👀',alterou_prazo:'⏱️'};
+  $('#abaArea').innerHTML=`<div class="card"><div class="card-h"><div><h3>Trilha de auditoria (${itens.length})</h3><div class="sub">Quem fez, o quê, quando.</div></div></div>
+    <div class="pad">${itens.length?itens.map(l=>`<div class="log-item"><div class="ic">${ACAO[l.acao]||'•'}</div>
+      <div><div class="ac">${esc(l.ator_nome||'—')} · ${esc(LOG_TXT(l.acao))}</div>
+        <div class="me">${l.reclamacao_id?'Manifestação #'+l.reclamacao_id+' · ':''}${l.detalhe?esc(JSON.stringify(l.detalhe)):''}</div></div>
+      <div class="me" style="text-align:right">${fmtData(l.criado_em)}</div></div>`).join(''):'<div style="color:var(--muted);text-align:center">Nenhum registro ainda.</div>'}</div></div>`;}
+function LOG_TXT(a){return {criou_operador:'criou operador',editou_operador:'editou operador',desativou:'desativou manifestação',reativou:'reativou manifestação',anonimizou_reclamacao:'anonimizou solicitante',anonimizou_interacao:'anonimizou mensagem',excluiu_anexo:'excluiu foto',respondeu:'respondeu',pediu_complemento:'pediu complemento',finalizou:'finalizou',suspendeu:'suspendeu',reabriu:'reabriu',em_tratamento:'abriu (em tratamento)',alterou_prazo:'alterou prazo'}[a]||a;}
+async function carregarOperadores(){const {data,error}=await _sb.rpc('fg_admin_listar_operadores');
+  if(error||!data?.sucesso){$('#abaArea').innerHTML=`<div class="card"><div class="pad" style="color:var(--danger)">Acesso restrito.</div></div>`;return;}
+  const itens=data.itens||[];
+  $('#abaArea').innerHTML=`<div class="card" style="margin-bottom:18px"><div class="card-h"><h3>Novo operador</h3></div><div class="pad">
+     <div class="row c2"><label class="fld"><span class="lab">Nome</span><input class="inp" id="oNome"></label>
+       <label class="fld"><span class="lab">E-mail</span><input class="inp" id="oEmail" type="email"></label></div>
+     <div class="row c2"><label class="fld"><span class="lab">Senha <span class="hint">(mín. 6)</span></span><input class="inp" id="oSenha" type="text"></label>
+       <label class="fld"><span class="lab">Papel</span><select id="oPapel"><option value="operador">Operador (vê e responde)</option><option value="admin">Administrador (acesso total)</option></select></label></div>
+     <button class="btn btn-gold" id="btnNovoOp" onclick="criarOperador()">Criar operador</button></div></div>
+   <div class="card"><div class="card-h"><h3>Equipe (${itens.length})</h3></div><div class="pad">
+     ${itens.map(o=>`<div class="list-item" style="cursor:default"><div class="pr">${o.papel==='admin'?'👑':'👤'}</div>
+       <div><div class="ti">${esc(o.nome)} ${o.ativo?'':'<span class="badge b-a_completar">inativo</span>'}</div><div class="me">${esc(o.email||'')} · ${o.papel}</div></div>
+       <div><button class="btn btn-ghost btn-sm" onclick="toggleOp('${o.id}',${o.ativo})">${o.ativo?'Desativar':'Ativar'}</button></div></div>`).join('')}</div></div>`;}
+async function criarOperador(){const nome=$('#oNome').value.trim(),email=$('#oEmail').value.trim(),senha=$('#oSenha').value,papel=$('#oPapel').value;
+  if(!nome||!email||!senha){toast('Preencha tudo.',true);return;}if(senha.length<6){toast('Senha mínima 6.',true);return;}
+  const b=$('#btnNovoOp');b.disabled=true;b.innerHTML='<span class="spinner"></span> Criando…';
+  const {data,error}=await _sb.rpc('fg_admin_criar_operador',{p_email:email,p_senha:senha,p_nome:nome,p_papel:papel});
+  b.disabled=false;b.textContent='Criar operador';if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}
+  toast('Operador criado ✓');carregarOperadores();}
+async function toggleOp(id,ativo){const {data,error}=await _sb.rpc('fg_admin_editar_operador',{p_id:id,p_ativo:!ativo});
+  if(error||!data?.sucesso){toast(data?.mensagem||'Erro.',true);return;}toast('Atualizado ✓');carregarOperadores();}
+
+function setupNav(){const brand=document.querySelector('.brand');
+  if(PAGE==='equipe'){document.querySelector('nav.menu').innerHTML='<a class="ghost" href="index.html">← Voltar ao site público</a>';if(brand)brand.setAttribute('onclick',"location.href='index.html'");}
+  else if(PAGE==='publico'){const eq=document.getElementById('navEquipe');if(eq){eq.removeAttribute('onclick');eq.setAttribute('href','equipe.html');}}}
+(async function init(){setupNav();
+  try{const {data}=await _sb.auth.getSession();if(data?.session){const {data:papel}=await _sb.rpc('fg_meu_papel');if(papel){S.sessao=data.session;S.papel=papel;}}}catch(e){}
+  ir(PAGE==='equipe'?'equipe':'home');})();
+</script>
+</body>
+</html>
